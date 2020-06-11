@@ -1,4 +1,4 @@
-export const STOCK_ORACLE_ADDRESS = '0x1E7125eBA1179087cf9ea1Aa38dd40f70cce1e20'
+export const STOCK_ORACLE_ADDRESS = '0x4Efa49ae7f3bee54d3f983E12a0Bc094acb4dD3c'
 export const STOCK_ORACLE_ABI = [
 	{
 		"inputs": [
