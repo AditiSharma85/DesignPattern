@@ -3,21 +3,22 @@ import Web3 from 'web3';
 import { STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS } from './quotecontract.js';
 
 const web3 = new Web3("http://localhost:7545");
-//const web3 = new Web3(window.web3.currentProvider);
 class Stock extends React.Component {
-    
+
     constructor() {
         super();
         this.state = { data: [] };
         this.handleChange = this.handleChange.bind(this);
         this.getApiInfo = this.getApiInfo.bind(this);
-        this.setStockInfo=this.setStockInfo.bind(this);
+        this.setStockInfo = this.setStockInfo.bind(this);
+        this.getStockPrice = this.getStockPrice.bind(this);
+        this.getStockVolume = this.getStockVolume.bind(this);
     }
     handleChange(event) {
         this.setState({ symbol: event.target.value });
     }
     getApiInfo(event) {
-        
+
         try {
             fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${this.state.symbol}&apikey=KEY`).then(res => res.json())
                 .then((result) => {
@@ -36,12 +37,12 @@ class Stock extends React.Component {
         }
         event.preventDefault();
     }
-    async setStockInfo(event){
+    async setStockInfo(event) {
         event.preventDefault();
         try {
-           
+
             const accounts = await web3.eth.getAccounts()
-            console.log("Account 0 = ", accounts[0] )
+            console.log("Account 0 = ", accounts[0])
             const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
             console.log(this.state.symbol);
             const retval = await stockQuote.methods.setStock(web3.utils.fromAscii(this.state.symbol), parseInt(this.state.price), parseInt(this.state.volume)).send({ from: accounts[0] });
@@ -49,14 +50,37 @@ class Stock extends React.Component {
 
         }
         catch (error) {
-            console.log('fetch failed', error);
+            console.log('setStock failed', error);
         }
-       // event.preventDefault();
     }
-    /*async getStockInfo(event){
+    async getStockPrice(event) {
         event.preventDefault();
-        try {*/
-
+        try {
+            const accounts = await web3.eth.getAccounts()
+            console.log("Account 0 = ", accounts[0])
+            const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
+            console.log(this.state.symbol);
+            const contractPrice = await stockQuote.methods.getStockPrice(web3.utils.fromAscii(this.state.symbol)).call();
+            console.log(contractPrice);
+        }
+        catch (error) {
+            console.log('getStockPrice failed', error);
+        }
+    }
+    async getStockVolume(event) {
+        event.preventDefault();
+        try {
+            const accounts = await web3.eth.getAccounts()
+            console.log("Account 0 = ", accounts[0])
+            const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
+            console.log(this.state.symbol);
+            const contractVolume = await stockQuote.methods.getStockVolume(web3.utils.fromAscii(this.state.symbol)).call();
+            console.log(contractVolume);
+        }
+        catch (error) {
+            console.log('getStockVolume failed', error);
+        }
+    }
     render() {
         return (
             <div>
@@ -67,11 +91,19 @@ class Stock extends React.Component {
                 </label>
                 <button type="button" onClick={this.getApiInfo}>Stock Price(API)</button>&nbsp;&nbsp;
                 <button type="button" onClick={this.setStockInfo}>Set Stock(Smart Contract)</button>&nbsp;
-                <button type="button" onClick={this.getStockInfo}>Get Stock(Smart Contract)</button>
+                <button type="button" onClick={this.getStockPrice}>Get Stock Price(Smart Contract)</button>&nbsp;&nbsp;
+                <button type="button" onClick={this.getStockVolume}>Get Stock Volume(Smart Contract)</button>
                 <h4>Stock Info from API</h4>
             Symbol: {this.state.symbol}<br />
             Price: {this.state.price}<br />
             Volume: {this.state.volume}<br />
+            <h4>Stock Price from Smart Contract</h4>
+            Symbol: {this.state.symbol}<br />
+            Price: {this.state.contractPrice}<br />
+            <h4>Stock Volume from Smart Contract</h4>
+            Symbol: {this.state.symbol}<br />
+            Volume: {this.state.ContractVolume}<br />
+
 
             </div>
 
