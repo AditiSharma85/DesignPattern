@@ -3,16 +3,24 @@ import Web3 from 'web3';
 import { STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS } from './quotecontract.js';
 
 const web3 = new Web3("http://localhost:7545");
+
+
 class Stock extends React.Component {
 
     constructor() {
         super();
-        this.state = { data: [] };
         this.handleChange = this.handleChange.bind(this);
         this.getApiInfo = this.getApiInfo.bind(this);
         this.setStockInfo = this.setStockInfo.bind(this);
         this.getStockPrice = this.getStockPrice.bind(this);
         this.getStockVolume = this.getStockVolume.bind(this);
+        this.state = {
+            contractPrice: '',
+            contractVolume: '',
+            data: []
+        }
+
+
     }
     handleChange(event) {
         this.setState({ symbol: event.target.value });
@@ -45,7 +53,7 @@ class Stock extends React.Component {
             console.log("Account 0 = ", accounts[0])
             const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
             console.log(this.state.symbol);
-            const retval = await stockQuote.methods.setStock(web3.utils.fromAscii(this.state.symbol), parseInt(this.state.price), parseInt(this.state.volume)).send({ from: accounts[0] });
+            const retval = await stockQuote.methods.setStock(web3.utils.fromAscii(this.state.symbol), parseInt(this.state.price * 100), parseInt(this.state.volume)).send({ from: accounts[0] });
             console.log(retval);
 
         }
@@ -60,8 +68,10 @@ class Stock extends React.Component {
             console.log("Account 0 = ", accounts[0])
             const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
             console.log(this.state.symbol);
-            const contractPrice = await stockQuote.methods.getStockPrice(web3.utils.fromAscii(this.state.symbol)).call();
-            console.log(contractPrice);
+            let conPrice = await stockQuote.methods.getStockPrice(web3.utils.fromAscii(this.state.symbol)).call();
+            this.setState({ contractPrice: parseFloat(conPrice / 100) });
+            console.log(this.state.contractPrice);
+
         }
         catch (error) {
             console.log('getStockPrice failed', error);
@@ -74,8 +84,9 @@ class Stock extends React.Component {
             console.log("Account 0 = ", accounts[0])
             const stockQuote = new web3.eth.Contract(STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS)
             console.log(this.state.symbol);
-            const contractVolume = await stockQuote.methods.getStockVolume(web3.utils.fromAscii(this.state.symbol)).call();
-            console.log(contractVolume);
+            let conVolume = await stockQuote.methods.getStockVolume(web3.utils.fromAscii(this.state.symbol)).call();
+            this.setState({ contractVolume: conVolume });
+            console.log(`Value of contract Volume ${this.state.contractVolume}`);
         }
         catch (error) {
             console.log('getStockVolume failed', error);
@@ -97,12 +108,12 @@ class Stock extends React.Component {
             Symbol: {this.state.symbol}<br />
             Price: {this.state.price}<br />
             Volume: {this.state.volume}<br />
-            <h4>Stock Price from Smart Contract</h4>
+                <h4>Stock Price from Smart Contract</h4>
             Symbol: {this.state.symbol}<br />
-            Price: {this.state.contractPrice}<br />
-            <h4>Stock Volume from Smart Contract</h4>
+            Price:{this.state.contractPrice} <br />
+                <h4>Stock Volume from Smart Contract</h4>
             Symbol: {this.state.symbol}<br />
-            Volume: {this.state.ContractVolume}<br />
+            Volume: {this.state.contractVolume} <br />
 
 
             </div>
